@@ -1,102 +1,24 @@
-// ===================== STATUS MAP ANGKA -> STRING =====================
+// ===================== KONFIGURASI & STATUS =====================
 const STATUS_MAP = {
     1: 'Occupied', // Merah
-    2: 'On-Hold',  // Kuning (auto dari sistem)
+    2: 'On-Hold',  // Kuning
     3: 'Empty'     // Hijau
 };
 
 // State global
-let currentSelectedChair = null;
-let currentSelectedSeat = null; // seat object yang lagi dipilih
-let currentSeats = [];
+let currentSelectedChair = null; // Element HTML kursi yang dipilih
+let currentSelectedSeat = null;  // Data object kursi yang dipilih
+let currentSeats = [];           // Menyimpan data status kursi saat ini
 let lastTimestamp = '---';
-// Cup mode removed — manual reservation feature deleted
-// Log storage per seat (id -> [{t: timestamp, msg: string}, ...])
+
+// Log storage: Objek untuk menyimpan riwayat per kursi
+// Format: { "T1": [ {t: "08:00:01", msg: "Empty -> Occupied"}, ... ], ... }
 const currentSeatLogs = {};
 
 
-// ===================== HANDLE CLICK KURSI (hanya pilih kursi) =====================
-function handleSeatClick(seat, chairElement) {
-    currentSelectedSeat = seat;
+// ===================== LOGIC UTAMA (Helper & Render) =====================
 
-    // Hapus highlight kursi sebelumnya
-    if (currentSelectedChair) {
-        currentSelectedChair.classList.remove('seat-selected', 'seat-click-anim');
-    }
-
-    // Set kursi ini sebagai terpilih
-    currentSelectedChair = chairElement;
-    chairElement.classList.add('seat-selected');
-
-    // Trigger animasi klik (glow pendek)
-    chairElement.classList.remove('seat-click-anim');
-    void chairElement.offsetWidth; // force reflow supaya anim bisa diulang
-    chairElement.classList.add('seat-click-anim');
-
-    // Update panel detail & tombol
-    showSeatDetails(seat);
-}
-
-
-// Manual Cup/Occupy actions removed
-
-
-/**
- * Mengolah data JSON dari backend jadi array kursi.
- * @param {object} jsonObject JSON dari API.
- * @returns {{seatArray: Array, timestamp: string}}
- */
-function processBackendData(jsonObject) {
-    const seatArray = [];
-
-    // Gunakan timestamp dari JSON untuk UI
-    const timestamp = jsonObject.timestamp;
-
-    // Status codes: { "T1": 1, "T2": 2, ... }
-    const statusCodes = jsonObject.status_codes;
-
-    for (const seatId in statusCodes) {
-        if (Object.prototype.hasOwnProperty.call(statusCodes, seatId)) {
-            const statusCode = statusCodes[seatId];
-            const statusString = STATUS_MAP[statusCode];
-
-            if (statusString) {
-                seatArray.push({
-                    id: seatId.toUpperCase(),
-                    status: statusString
-                });
-            }
-        }
-    }
-
-    return { seatArray, timestamp };
-}
-
-
-/**
- * Fetch data status kursi dari backend / file lokal.
- */
-function fetchSeatStatusFromBackend() {
-    const url = 'data/status_simulasi.json';
-
-    return fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => processBackendData(data))
-        .catch(error => {
-            console.error('Error fetching data:', error);
-            // Kalau gagal, balikin array kosong + timestamp sekarang
-            return { seatArray: [], timestamp: new Date().toISOString() };
-        });
-}
-
-
-// ===================== HELPER STATUS =====================
-
+// Mendapatkan class CSS berdasarkan status string
 function getStatusClass(status) {
     switch (status) {
         case 'Occupied': return 'occupied-status';
@@ -106,61 +28,91 @@ function getStatusClass(status) {
     }
 }
 
-function getStatusMessage(status) {
-    switch (status) {
-        case 'Occupied':
-            return 'Terpakai. Ada pengguna di kursi.';
-        case 'On-Hold':
-            return 'On-Hold. Ada barang tanpa orang (terdeteksi sistem).';
-        case 'Empty':
-            return 'Kosong. Siap digunakan oleh user.';
-        default:
-            return '---';
-    }
-}
-
+// Render list log di Sidebar
 function renderLogList(seatId) {
     const logList = document.getElementById('log-list');
     if (!logList) return;
 
     const logs = currentSeatLogs[seatId] || [];
+    
+    // Jika log kosong
     if (!logs.length) {
-        logList.innerHTML = '<div class="log-placeholder">Tidak ada riwayat untuk kursi ini.</div>';
+        logList.innerHTML = '<div class="log-placeholder">Belum ada perubahan status untuk kursi ini.</div>';
         return;
     }
 
+    // Render HTML log (Maksimal 5 teratas)
     logList.innerHTML = logs.map(entry => {
-        const ts = entry.t || '';
-        const msg = entry.msg || '';
-        return `<div class="log-entry"><span class="log-timestamp">${ts}</span><span class="log-message">${msg}</span></div>`;
+        return `
+            <div class="log-entry">
+                <span class="log-timestamp">${entry.t}</span>
+                <span class="log-message">${entry.msg}</span>
+            </div>
+        `;
     }).join('');
 }
 
+// Handle saat kursi diklik
+function handleSeatClick(seatId, chairElement) {
+    // Cari data kursi terbaru dari array global
+    const seatData = currentSeats.find(s => s.id === seatId);
+    currentSelectedSeat = seatData;
 
-// ===================== RENDER MAP KURSI =====================
+    // Visual effect (Highlight)
+    if (currentSelectedChair) {
+        currentSelectedChair.classList.remove('seat-selected', 'seat-click-anim');
+    }
+    currentSelectedChair = chairElement;
+    chairElement.classList.add('seat-selected');
+    
+    // Trigger animasi css restart
+    chairElement.classList.remove('seat-click-anim');
+    void chairElement.offsetWidth; 
+    chairElement.classList.add('seat-click-anim');
 
-function renderSeatMap(data) {
-    data.forEach(seat => {
-        const chairElement = document.querySelector(`.chair[data-seat-id="${seat.id}"]`);
-        if (chairElement) {
-            // Set kelas warna berdasarkan status (merah/kuning/hijau)
-            const extra = (currentSelectedChair === chairElement) ? ' seat-selected' : '';
-            chairElement.className = `chair ${getStatusClass(seat.status)}${extra}`;
-
-            const seatWrapper = chairElement.closest('.seat-wrapper');
-            if (seatWrapper) {
-                seatWrapper.onclick = () => handleSeatClick(seat, chairElement);
-            }
-        }
-    });
+    // Update Sidebar
+    showSeatDetails(seatId);
 }
 
+// Tampilkan detail di sidebar
+function showSeatDetails(seatId) {
+    const idSpan = document.getElementById('detail-id');
+    if(idSpan) idSpan.textContent = seatId;
+    renderLogList(seatId);
+}
 
-// ===================== SUMMARY CARDS =====================
+// Reset sidebar jika belum ada yang dipilih
+function resetSeatDetails() {
+    const idSpan = document.getElementById('detail-id');
+    const logList = document.getElementById('log-list');
+    if(idSpan) idSpan.textContent = 'Klik salah satu kursi';
+    if(logList) logList.innerHTML = '<div class="log-placeholder">Pilih kursi untuk melihat riwayat perubahan status.</div>';
+}
 
+// Parsing data JSON backend
+function processBackendData(jsonObject) {
+    const seatArray = [];
+    const timestamp = jsonObject.timestamp;
+    const statusCodes = jsonObject.status_codes;
+
+    for (const seatId in statusCodes) {
+        if (Object.prototype.hasOwnProperty.call(statusCodes, seatId)) {
+            const statusCode = statusCodes[seatId];
+            const statusString = STATUS_MAP[statusCode];
+            if (statusString) {
+                seatArray.push({
+                    id: seatId.toUpperCase(),
+                    status: statusString
+                });
+            }
+        }
+    }
+    return { seatArray, timestamp };
+}
+
+// Update Angka di Kartu Atas
 function updateSummaryCards(data, timestamp) {
     const counts = { Occupied: 0, 'On-Hold': 0, Empty: 0, Total: data.length };
-
     data.forEach(seat => {
         if (Object.prototype.hasOwnProperty.call(counts, seat.status)) {
             counts[seat.status]++;
@@ -170,62 +122,161 @@ function updateSummaryCards(data, timestamp) {
     document.getElementById('count-occupied').textContent = counts.Occupied;
     document.getElementById('count-on-hold').textContent = counts['On-Hold'];
     document.getElementById('count-empty').textContent = counts.Empty;
-
-    // Update waktu dari backend
     document.getElementById('last-updated-text').textContent = `Last Updated: ${timestamp}`;
     document.querySelector('.logo h1').textContent = `📚 PETRA LIBRARY (Total: ${counts.Total})`;
 }
 
+// Render Warna Kursi di Peta
+function renderSeatMap(data) {
+    data.forEach(seat => {
+        // Cari elemen kursi di HTML berdasarkan atribut data-seat-id
+        const chairElement = document.querySelector(`.chair[data-seat-id="${seat.id}"]`);
+        if (chairElement) {
+            // Update warna class
+            const isSelected = (currentSelectedChair === chairElement) ? ' seat-selected' : '';
+            chairElement.className = `chair ${getStatusClass(seat.status)}${isSelected}`;
 
-// ===================== DETAIL KURSI (SIDEBAR) =====================
-
-function showSeatDetails(seat) {
-    const idSpan = document.getElementById('detail-id');
-    idSpan.textContent = seat.id;
-    renderLogList(seat.id);
+            // Pasang event listener click
+            const seatWrapper = chairElement.closest('.seat-wrapper');
+            if (seatWrapper) {
+                seatWrapper.onclick = () => handleSeatClick(seat.id, chairElement);
+            }
+        }
+    });
 }
 
-function resetSeatDetails() {
+
+// ===================== LOGIC SIMULASI & HISTORY =====================
+
+let simulationData = [];    
+let currentIndex = 0;       
+let simulationInterval = null;
+
+// Fungsi Mencatat Log (Maksimal 5)
+function addLogEntry(seatId, timestamp, oldStatus, newStatus) {
+    // Pesan log: "Empty -> Occupied"
+    const message = `${oldStatus} ➝ ${newStatus}`;
+
+    if (!currentSeatLogs[seatId]) {
+        currentSeatLogs[seatId] = [];
+    }
+
+    // Tambah ke urutan paling atas
+    currentSeatLogs[seatId].unshift({
+        t: timestamp,
+        msg: message
+    });
+
+    // Potong jika lebih dari 5
+    if (currentSeatLogs[seatId].length > 5) {
+        currentSeatLogs[seatId] = currentSeatLogs[seatId].slice(0, 5);
+    }
+
+    // Jika user sedang melihat kursi ini, update sidebar realtime
     const idSpan = document.getElementById('detail-id');
-    const logList = document.getElementById('log-list');
-    idSpan.textContent = 'Klik salah satu kursi';
-    if (logList) logList.innerHTML = '<div class="log-placeholder">Pilih kursi untuk melihat riwayat perubahan status.</div>';
+    if (idSpan && idSpan.textContent === seatId) {
+        renderLogList(seatId);
+    }
+}
+
+// Langkah Update Per Detik
+// ===================== LOGIC UPDATE PER DETIK =====================
+
+function runUpdateStep() {
+    // 1. Ambil data frame simulasi saat ini
+    const currentFrame = simulationData[currentIndex];
+    
+    // 2. Olah data
+    const processed = processBackendData(currentFrame);
+    const newSeatArray = processed.seatArray;
+    const newTimestamp = processed.timestamp;
+
+    // 3. CEK PERUBAHAN STATUS & UPDATE LOG
+    newSeatArray.forEach(newSeat => {
+        // Cari status lama kursi ini di array global
+        const oldSeat = currentSeats.find(s => s.id === newSeat.id);
+
+        if (oldSeat) {
+            // Jika status berubah
+            if (oldSeat.status !== newSeat.status) {
+                
+                // --- FILTER LOGIKA BARU ---
+                // Hanya catat log jika status BARU adalah 'Occupied' (Merah)
+                if (newSeat.status === 'Occupied') {
+                    addLogEntry(newSeat.id, newTimestamp, oldSeat.status, newSeat.status);
+                }
+                
+            }
+        }
+    });
+
+    // 4. Update Global State
+    currentSeats = newSeatArray;
+    lastTimestamp = newTimestamp;
+
+    // 5. Update Tampilan
+    updateSummaryCards(currentSeats, lastTimestamp);
+    renderSeatMap(currentSeats);
+
+    // 6. Maju ke frame berikutnya
+    currentIndex++; 
+    
+    // 7. Looping jika data habis
+    if (currentIndex >= simulationData.length) {
+        currentIndex = 0; 
+    }
+}
+
+function startSimulationLoop() {
+    if (!simulationData || simulationData.length === 0) return;
+
+    // Load frame pertama (tanpa log karena belum ada perbandingan)
+    const firstFrame = simulationData[0];
+    const { seatArray, timestamp } = processBackendData(firstFrame);
+    
+    currentSeats = seatArray; 
+    lastTimestamp = timestamp;
+    
+    updateSummaryCards(currentSeats, lastTimestamp);
+    renderSeatMap(currentSeats);
+
+    // Mulai loop dari index 1
+    currentIndex = 1;
+
+    // Jalankan interval 1 detik (1000ms)
+    simulationInterval = setInterval(() => {
+        runUpdateStep();
+    }, 1000); 
 }
 
 
-// ===================== INITIALIZATION =====================
+// ===================== INISIALISASI PROGRAM =====================
 
 document.addEventListener('DOMContentLoaded', () => {
     resetSeatDetails();
 
-    // Manual cup/occupy controls removed — UI is read-only with backend status
-
-    // Data awal dari backend
-    fetchSeatStatusFromBackend().then(({ seatArray, timestamp }) => {
-        currentSeats = seatArray;
-        lastTimestamp = timestamp;
-
-        // Initialize logs for seats if needed
-        seatArray.forEach(seat => {
-            if (!currentSeatLogs[seat.id]) {
-                currentSeatLogs[seat.id] = [];
+    // Fetch File JSON
+    fetch('data/status_simulasi.json')
+        .then(response => {
+            if (!response.ok) throw new Error("Gagal load JSON");
+            return response.json();
+        })
+        .then(data => {
+            if (Array.isArray(data)) {
+                // Mode Simulasi (Array)
+                simulationData = data;
+                console.log(`Berhasil memuat ${data.length} frame simulasi.`);
+                startSimulationLoop();
+            } else {
+                // Mode Static (Object tunggal) - Fallback
+                const { seatArray, timestamp } = processBackendData(data);
+                currentSeats = seatArray;
+                updateSummaryCards(seatArray, timestamp);
+                renderSeatMap(seatArray);
             }
-            if (currentSeatLogs[seat.id].length === 0) {
-                currentSeatLogs[seat.id].push({ t: timestamp, msg: `Status set to ${seat.status}` });
-            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+            document.getElementById('last-updated-text').textContent = "Error loading data.";
         });
-
-        updateSummaryCards(currentSeats, lastTimestamp);
-        renderSeatMap(currentSeats);
-    });
-
-    // Kalau mau polling backend:
-    // setInterval(() => {
-    //   fetchSeatStatusFromBackend().then(({ seatArray, timestamp }) => {
-    //       currentSeats = seatArray;
-    //       lastTimestamp = timestamp;
-    //       updateSummaryCards(currentSeats, lastTimestamp);
-    //       renderSeatMap(currentSeats);
-    //   });
-    // }, 5000);
 });
