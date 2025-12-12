@@ -6,7 +6,8 @@ import json
 def setup_roi():
     """
     One-time setup untuk select area yang mau dimonitor
-    Koordinat disimpan ke config/monitor_roi.json
+    Koordinat TIDAK langsung disimpan ke file, hanya di-print
+    supaya bisa kamu copy-paste sendiri ke JSON.
     """
     print("="*60)
     print("  SETUP MONITOR AREA - PETRA LIBRARY SEAT DETECTION")
@@ -28,8 +29,12 @@ def setup_roi():
     print("📸 Screenshot captured. Please select the library area...")
     
     # Let user select ROI
-    roi = cv2.selectROI("Select Library Area to Monitor", frame_full,
-                        showCrosshair=True, fromCenter=False)
+    roi = cv2.selectROI(
+        "Select Library Area to Monitor",
+        frame_full,
+        showCrosshair=True,
+        fromCenter=False
+    )
     cv2.destroyAllWindows()
     
     x, y, w, h = roi
@@ -46,17 +51,18 @@ def setup_roi():
         "height": int(h)
     }
     
-    # Save to JSON
-    with open('config/monitor_roi.json', 'w') as f:
-        json.dump(monitor_roi, f, indent=2)
-    
-    print("\n✅ ROI saved successfully!")
+    print("\n✅ ROI captured!")
     print(f"   Area: {w}x{h} pixels")
     print(f"   Position: ({monitor_roi['left']}, {monitor_roi['top']})")
-    print(f"   Saved to: config/monitor_roi.json")
+    
+    # ==== BAGIAN BARU: hanya print JSON, tidak simpan file ====
+    print("\n👉 Copy JSON berikut ke file config/monitor_roi.json:")
+    print("=============================================")
+    print(json.dumps(monitor_roi, indent=2))
+    print("=============================================\n")
     
     # Show preview
-    print("\n📺 Showing preview of selected area...")
+    print("📺 Showing preview of selected area...")
     print("   Press any key to close preview")
     
     preview_img = np.array(sct.grab(monitor_roi))
@@ -66,7 +72,7 @@ def setup_roi():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     
-    print("\n✅ Setup complete! You can now run stream_server.py")
+    print("\n✅ Setup complete! Jangan lupa buat file config/monitor_roi.json dan paste JSON di atas.")
     
     return monitor_roi
 

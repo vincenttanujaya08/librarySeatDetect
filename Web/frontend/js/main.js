@@ -16,7 +16,7 @@ let lastTimestamp = "---";
 const currentSeatLogs = {};
 
 // ===================== WEBSOCKET CONNECTION =====================
-const socket = io("http://localhost:5000");
+const socket = io("http://localhost:5050");
 
 // Connection status handling
 socket.on("connect", () => {
