@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Petra Library Seat Availability</title>
+    <title>Petra Library Seat Availability - LIVE</title>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Socket.IO Library for WebSocket -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
             <div class="logo">
                 <h1>📚 PETRA LIBRARY</h1>
             </div>
-            <div class="header-title">SEAT AVAILABILITY</div>
+            <div class="header-title">LIVE SEAT DETECTION</div>
         </div>
 
         <div class="summary-info">
@@ -31,7 +36,7 @@
                     <div class="card-value" id="count-empty">0</div>
                 </div>
             </div>
-            <p class="last-updated" id="last-updated-text">Last Updated: ---</p>
+            <p class="last-updated" id="last-updated-text">Connecting to server...</p>
         </div>
 
         <div class="main-content">
@@ -101,4 +106,5 @@
 
     <script src="js/main.js"></script>
 </body>
+
 </html>
