@@ -4,17 +4,13 @@
     --color-bg-header: #2C313C;
     --color-text-light: #F8F8F8;
     --color-text-grey: #B0B5C0;
-
-    /* Seat status colors */
-    --color-occupied: #F44336; /* Red   */
-    --color-on-hold:  #FFC107; /* Yellow*/
-    --color-empty:    #4CAF50; /* Green */
-    --color-border:   #40444C;
-    --color-table:    #D9DEE3; /* Table background — darker than previous */
+    --color-occupied: #F44336;
+    --color-on-hold: #FFC107;
+    --color-empty: #4CAF50;
+    --color-border: #40444C;
+    --color-table: #D9DEE3;
 }
 
-
-/* ===================== GENERAL LAYOUT ===================== */
 body {
     font-family: 'Roboto', sans-serif;
     background-color: var(--color-bg-dark);
@@ -47,8 +43,6 @@ body {
 .logo h1 {
     margin: 0;
     font-size: 24px;
-    display: flex;
-    align-items: center;
 }
 
 .header-title {
@@ -91,10 +85,18 @@ body {
     font-weight: 700;
 }
 
-/* CARD COLORS */
-.card.occupied-card { background-color: var(--color-occupied); }
-.card.on-hold-card  { background-color: var(--color-on-hold); color: var(--color-bg-dark); }
-.card.empty-card    { background-color: var(--color-empty); }
+.card.occupied-card {
+    background-color: var(--color-occupied);
+}
+
+.card.on-hold-card {
+    background-color: var(--color-on-hold);
+    color: var(--color-bg-dark);
+}
+
+.card.empty-card {
+    background-color: var(--color-empty);
+}
 
 .main-content {
     display: flex;
@@ -109,8 +111,6 @@ body {
     gap: 20px;
 }
 
-
-/* ===================== SIDEBAR (LEGEND & DETAILS) ===================== */
 .legend,
 .seat-details {
     background-color: var(--color-bg-dark);
@@ -141,16 +141,23 @@ body {
     margin-right: 10px;
 }
 
-.legend .occupied-status { background-color: var(--color-occupied); }
-.legend .on-hold-status  { background-color: var(--color-on-hold); }
-.legend .empty-status    { background-color: var(--color-empty); }
+.legend .occupied-status {
+    background-color: var(--color-occupied);
+}
+
+.legend .on-hold-status {
+    background-color: var(--color-on-hold);
+}
+
+.legend .empty-status {
+    background-color: var(--color-empty);
+}
 
 .detail-info p {
     margin: 5px 0;
     font-size: 16px;
 }
 
-/* Log history list inside sidebar */
 .log-list {
     margin-top: 10px;
     background-color: #121317;
@@ -165,86 +172,28 @@ body {
 
 .log-entry {
     padding: 6px 8px;
-    border-bottom: 1px dashed rgba(255,255,255,0.03);
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.03);
 }
 
-.log-entry:last-child { border-bottom: none; }
-
-.log-timestamp { color: var(--color-text-grey); font-weight: 600; margin-right: 6px; }
-.log-message { color: var(--color-text-light); }
-.log-placeholder { color: var(--color-text-grey); font-style: italic; }
-
-.detail-status {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-
-    font-weight: 700;
-    font-size: 18px;
-
-    padding: 3px 8px;
-    border-radius: 4px;
-
-    width: 90px; /* Fixed width agar stabil */
-    text-align: center;
-
-    background-color: transparent;
-    color: var(--color-text-light);
-    box-sizing: border-box;
-
-    transition: background-color 0.2s ease, color 0.2s ease;
+.log-entry:last-child {
+    border-bottom: none;
 }
 
-.detail-status.occupied-status {
-    background-color: var(--color-occupied);
-    color: #fff;
-}
-
-.detail-status.on-hold-status {
-    background-color: var(--color-on-hold);
-    color: #000;
-}
-
-.detail-status.empty-status {
-    background-color: var(--color-empty);
-    color: #fff;
-}
-
-
-/* Tombol aksi di detail */
-.detail-actions {
-    margin-top: 10px;
-    display: flex;
-    gap: 8px;
-}
-
-.detail-actions button {
-    flex: 1;
-    padding: 6px 10px;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
+.log-timestamp {
+    color: var(--color-text-grey);
     font-weight: 600;
-    cursor: pointer;
-    background-color: #555;
-    color: #fff;
-    transition: opacity 0.2s ease, background-color 0.2s ease;
+    margin-right: 6px;
 }
 
-.detail-actions button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+.log-message {
+    color: var(--color-text-light);
 }
 
-/* Cup button removed */
-
-#btn-occupy:not(:disabled) {
-    background-color: var(--color-occupied);
-    color: #fff;
+.log-placeholder {
+    color: var(--color-text-grey);
+    font-style: italic;
 }
 
-
-/* ===================== SEAT MAP AREA ===================== */
 .seat-map-area {
     flex-grow: 3;
     background-color: white;
@@ -258,14 +207,12 @@ body {
     min-height: 500px;
 }
 
-/* Container meja + kursi */
 .table-container {
     width: 500px;
     height: 400px;
     position: relative;
 }
 
-/* Meja – diposisikan statis tanpa transform */
 .table {
     position: absolute;
     top: 100px;
@@ -277,7 +224,6 @@ body {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
 }
 
-/* Seat wrapper: posisi kursi di sekitar meja */
 .seat-wrapper {
     position: absolute;
     display: flex;
@@ -293,7 +239,6 @@ body {
     margin-bottom: 5px;
 }
 
-/* Kursi: ukuran fix, tanpa scale */
 .chair {
     width: 40px;
     height: 40px;
@@ -301,18 +246,13 @@ body {
     position: relative;
     border: 2px solid rgba(0, 0, 0, 0.1);
     box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.25s ease-out,
-                box-shadow 0.25s ease-out;
+    transition: background-color 0.25s ease-out, box-shadow 0.25s ease-out;
 }
 
-/* Kursi yang sedang terpilih */
 .chair.seat-selected {
-    box-shadow:
-        0 0 0 2px rgba(255, 255, 255, 0.9),
-        0 0 10px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 10px rgba(0, 0, 0, 0.45);
 }
 
-/* Chair back detail */
 .chair::before {
     content: '';
     position: absolute;
@@ -323,17 +263,13 @@ body {
     top: 0;
 }
 
-/* Animasi klik kursi */
 @keyframes seatClickGlow {
     0% {
-        box-shadow:
-            0 0 0 2px rgba(255, 255, 255, 0.9),
-            0 0 12px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 12px rgba(0, 0, 0, 0.5);
     }
+
     100% {
-        box-shadow:
-            0 0 0 2px rgba(255, 255, 255, 0),
-            0 0 4px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0), 0 0 4px rgba(0, 0, 0, 0.25);
     }
 }
 
@@ -341,37 +277,47 @@ body {
     animation: seatClickGlow 0.3s ease-out;
 }
 
-/* Animasi pulse badge detail */
-@keyframes detailPulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5);
-    }
-    100% {
-        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
-    }
+.occupied-status {
+    background-color: var(--color-occupied);
 }
 
-.detail-status.detail-pulse {
-    animation: detailPulse 0.35s ease-out;
+.on-hold-status {
+    background-color: var(--color-on-hold);
 }
 
+.empty-status {
+    background-color: var(--color-empty);
+}
 
-/* Seat status colors (dipakai di .chair & legend & detail) */
-.occupied-status { background-color: var(--color-occupied); }
-.on-hold-status  { background-color: var(--color-on-hold);  }
-.empty-status    { background-color: var(--color-empty);    }
+.seat-T1 {
+    top: 30px;
+    left: 60px;
+}
 
+.seat-T2 {
+    top: 30px;
+    left: 230px;
+}
 
-/* ===================== SEAT POSITIONS (FIX TANPA TRANSFORM) ===================== */
-/* Top row – koordinat fix */
-.seat-T1 { top: 30px;  left: 60px;  }
-.seat-T2 { top: 30px;  left: 230px; }
-.seat-T3 { top: 30px;  left: 400px; }
+.seat-T3 {
+    top: 30px;
+    left: 400px;
+}
 
-/* Bottom row – koordinat fix */
-.seat-B1 { bottom: 30px; left: 60px;  }
-.seat-B2 { bottom: 30px; left: 230px; }
-.seat-B3 { bottom: 30px; left: 400px; }
+.seat-B1 {
+    bottom: 30px;
+    left: 60px;
+}
+
+.seat-B2 {
+    bottom: 30px;
+    left: 230px;
+}
+
+.seat-B3 {
+    bottom: 30px;
+    left: 400px;
+}
 
 .seat-B1 .seat-id-label,
 .seat-B2 .seat-id-label,
