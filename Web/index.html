@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petra Library Seat Availability - LIVE</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Socket.IO Library for WebSocket -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <h1>📚 PETRA LIBRARY</h1>
+            </div>
+            <div class="header-title">LIVE SEAT DETECTION</div>
+        </div>
+
+        <div class="summary-info">
+            <div class="cards-container">
+                <div class="card occupied-card">
+                    <div class="card-title">Occupied (Red)</div>
+                    <div class="card-value" id="count-occupied">0</div>
+                </div>
+                <div class="card on-hold-card">
+                    <div class="card-title">On-Hold (Yellow)</div>
+                    <div class="card-value" id="count-on-hold">0</div>
+                </div>
+                <div class="card empty-card">
+                    <div class="card-title">Empty (Green)</div>
+                    <div class="card-value" id="count-empty">0</div>
+                </div>
+            </div>
+            <p class="last-updated" id="last-updated-text">Connecting to server...</p>
+        </div>
+
+        <div class="main-content">
+            <div class="seat-map-area">
+                <div id="map-visualization" class="table-container">
+                    <div class="table"></div>
+
+                    <!-- TOP ROW -->
+                    <div class="seat-wrapper seat-T1">
+                        <div class="seat-id-label">T1</div>
+                        <div class="chair" data-seat-id="T1"></div>
+                    </div>
+                    <div class="seat-wrapper seat-T2">
+                        <div class="seat-id-label">T2</div>
+                        <div class="chair" data-seat-id="T2"></div>
+                    </div>
+                    <div class="seat-wrapper seat-T3">
+                        <div class="seat-id-label">T3</div>
+                        <div class="chair" data-seat-id="T3"></div>
+                    </div>
+
+                    <!-- BOTTOM ROW -->
+                    <div class="seat-wrapper seat-B1">
+                        <div class="chair" data-seat-id="B1"></div>
+                        <div class="seat-id-label">B1</div>
+                    </div>
+                    <div class="seat-wrapper seat-B2">
+                        <div class="chair" data-seat-id="B2"></div>
+                        <div class="seat-id-label">B2</div>
+                    </div>
+                    <div class="seat-wrapper seat-B3">
+                        <div class="chair" data-seat-id="B3"></div>
+                        <div class="seat-id-label">B3</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="legend">
+                    <h3>Keterangan Status</h3>
+                    <div class="legend-item">
+                        <div class="legend-color occupied-status"></div>
+                        <span>Occupied (Terpakai Orang)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color on-hold-status"></div>
+                        <span>On-Hold/Suspected (Ada Barang)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color empty-status"></div>
+                        <span>Empty (Kosong)</span>
+                    </div>
+                </div>
+
+                <div class="seat-details">
+                    <h3>Log History</h3>
+                    <div class="detail-info">
+                        <p>ID Kursi: <span id="detail-id">Klik salah satu kursi</span></p>
+                        <div id="log-list" class="log-list">
+                            <div class="log-placeholder">Pilih kursi untuk melihat riwayat perubahan status.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+
+</html>
