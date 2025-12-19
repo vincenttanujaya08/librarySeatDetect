@@ -128,6 +128,16 @@ class SeatDetector:
         Returns:
             dict: {seat_id: {'status': str, 'detected_objects': [...], 'reason': str}}
         """
+
+         # -------------------------------
+        # Helper functions
+        # -------------------------------
+        def bbox_center(b):
+            return ((b[0] + b[2]) / 2, (b[1] + b[3]) / 2)
+
+        def distance(p1, p2):
+            return ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** 0.5
+        
         # Separate persons dan objects
         person_detections = []
         object_detections = []
@@ -138,14 +148,42 @@ class SeatDetector:
             else:
                 object_detections.append(det)
         
-        # Phase 1: Assign persons to seats
-        seats_with_person = {}
-        for seat_id in seat_zones.keys():
-            seats_with_person[seat_id] = []
-            
-            for person in person_detections:
-                if is_object_in_seat(person['bbox'], seat_zones[seat_id], 'any_overlap'):
-                    seats_with_person[seat_id].append(person)
+        # -------------------------------
+        # Precompute seat centers
+        # -------------------------------
+        seat_centers = {
+            seat_id: bbox_center(seat_bbox)
+            for seat_id, seat_bbox in seat_zones.items()
+        }
+
+        # -------------------------------
+        # Phase 1 — Assign each person to ONE closest seat
+        # -------------------------------
+        seats_with_person = {seat_id: [] for seat_id in seat_zones.keys()}
+        used_seats = set()
+
+        for person in person_detections:
+            person_center = bbox_center(person['bbox'])
+
+            closest_seat = None
+            closest_dist = float("inf")
+
+            for seat_id, seat_center in seat_centers.items():
+                if seat_id in used_seats:
+                    continue
+
+                # Optional: require some overlap to be eligible
+                if not is_object_in_seat(person['bbox'], seat_zones[seat_id], 'any_overlap'):
+                    continue
+
+                d = distance(person_center, seat_center)
+                if d < closest_dist:
+                    closest_dist = d
+                    closest_seat = seat_id
+
+            if closest_seat is not None:
+                seats_with_person[closest_seat].append(person)
+                used_seats.add(closest_seat)
         
         # Phase 2: Assign objects (priority ke seats dengan person)
         assigned_objects = set()  # Track objek yang sudah di-assign
@@ -168,8 +206,10 @@ class SeatDetector:
                         if is_object_in_seat(obj['bbox'], seat_bbox, 'any_overlap'):
                             seat_objects[seat_id].append(obj)
                             assigned_objects.add(idx)
-        
-        # Phase 3: Determine status for each seat
+
+        # ======================================================
+        # Phase 4 — Produce final seat_statuses
+        # ======================================================
         seat_statuses = {}
         
         for seat_id in seat_zones.keys():
